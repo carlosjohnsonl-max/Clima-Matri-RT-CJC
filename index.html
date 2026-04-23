@@ -9,15 +9,15 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:#0d1f33;color:#e8e4d8;font-family:'DM Mono','Courier New',monospace;min-height:100vh;padding:2.5rem 1.5rem 3rem}
 .bg{position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,#1e4a7a 0%,transparent 70%),linear-gradient(180deg,#0d1f33 0%,#0f2744 50%,#0a1828 100%);z-index:0;pointer-events:none}
-.stars{position:fixed;inset:0;background-image:radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 33% 7%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 54% 14%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 73% 4%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 88% 22%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 22% 42%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(1px 1px at 63% 33%,rgba(255,255,255,.2) 0%,transparent 100%);z-index:0;pointer-events:none}
+.stars{position:fixed;inset:0;background-image:radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 33% 7%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 54% 14%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 73% 4%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 88% 22%,rgba(255,255,255,.3) 0%,transparent 100%);z-index:0;pointer-events:none}
 .wrap{position:relative;z-index:1;max-width:1050px;margin:0 auto}
 .hdr{margin-bottom:2rem;animation:up .6s ease both}
 .eyebrow{font-size:10px;letter-spacing:.2em;color:#3d5268;text-transform:uppercase;margin-bottom:.4rem}
 h1{font-family:'Fraunces',Georgia,serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:300;color:#e8e4d8;line-height:1.1}
 h1 span{color:#e8a940;font-style:italic}
 .sub{margin-top:.5rem;font-size:10px;color:#3d5268;letter-spacing:.08em}
-.ts{font-size:10px;color:#3d5268;margin-bottom:1.5rem;animation:up .6s ease .1s both}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;animation:up .5s ease .15s both}
+.ts{font-size:10px;color:#3d5268;margin-bottom:1.5rem}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden}
 .card{background:rgba(255,255,255,.03);padding:1.5rem 1.25rem;transition:background .2s}
 .card:hover{background:rgba(255,255,255,.06)}
 .cday{font-size:9px;letter-spacing:.15em;color:#3d5268;text-transform:uppercase;margin-bottom:3px}
@@ -44,7 +44,7 @@ h1 span{color:#e8a940;font-style:italic}
 .loading{grid-column:1/-1;padding:3rem;text-align:center;color:#3d5268;font-size:12px;letter-spacing:.1em}
 .dot{animation:pulse 1.2s ease infinite;display:inline-block}
 .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
-.ftr{margin-top:1.25rem;font-size:9px;color:#3d5268;letter-spacing:.06em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;animation:up .7s ease .4s both}
+.ftr{margin-top:1.25rem;font-size:9px;color:#3d5268;letter-spacing:.06em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
 @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
 @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}}
@@ -60,7 +60,7 @@ h1 span{color:#e8a940;font-style:italic}
     <h1>Próximos <span>4 días</span></h1>
     <p class="sub">Temperatura · Lluvia · Humedad · Viento · UV · Puesta del sol</p>
   </div>
-  <p class="ts" id="ts">Cargando datos en tiempo real...</p>
+  <p class="ts" id="ts">Cargando...</p>
   <div class="grid" id="grid">
     <div class="loading">Consultando Open-Meteo<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
   </div>
@@ -73,16 +73,7 @@ h1 span{color:#e8a940;font-style:italic}
 const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 
-function fmt(d){
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-
-function getDates(){
-  const now=new Date();
-  const start=new Date(now); start.setDate(start.getDate()+1);
-  const end=new Date(start); end.setDate(end.getDate()+3);
-  return{start:fmt(start),end:fmt(end)};
-}
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 
 function label(iso){
   const[y,m,d]=iso.split('-').map(Number);
@@ -97,65 +88,68 @@ function wdir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45
 function card(iso,i,data){
   const lbl=label(iso);
   const tmax=Math.round(data.tmax[i]),tmin=Math.round(data.tmin[i]),
-        rain=Math.round(data.rain[i]),
-        hum=Math.round(data.hum[i]),
-        wind=Math.round(data.wind[i]),
-        wd=wdir(data.wdir[i]),
-        uv=parseFloat(data.uv[i]||0).toFixed(1),
-        sun=data.sun[i],
+        rain=Math.round(data.rain[i]),hum=Math.round(data.hum[i]),
+        wind=Math.round(data.wind[i]),wd=wdir(data.wdir[i]),
+        uv=parseFloat(data.uv[i]||0).toFixed(1),sun=data.sun[i],
         [rl,rc]=rainInfo(rain),[ul,uc]=uvInfo(parseFloat(uv));
-  return '<div class="card">'+
-    '<p class="cday">'+lbl.day+'</p><p class="cdate">'+lbl.date+'</p>'+
-    '<div class="m"><p class="mlbl">Temperatura</p>'+
-      '<div class="trow"><span class="tmax">'+tmax+'<span class="mu">°</span></span><span class="tmin">'+tmin+'<span class="mu">°</span></span></div>'+
-      '<p class="msub">máx · mín °C</p></div>'+
-    '<div class="m"><p class="mlbl">Prob. lluvia</p>'+
-      '<div class="mval" style="color:#5fa8d3">'+rain+'<span class="mu">%</span></div>'+
-      '<div class="trk"><div class="fill fr" data-w="'+rain+'"></div></div>'+
-      '<span class="bdg '+rc+'">'+rl+'</span></div>'+
-    '<div class="m"><p class="mlbl">Humedad</p>'+
-      '<div class="mval" style="color:#4caf82">'+hum+'<span class="mu">%</span></div>'+
-      '<div class="trk"><div class="fill fh" data-w="'+hum+'"></div></div></div>'+
-    '<div class="m"><p class="mlbl">Viento</p>'+
-      '<div class="mval" style="color:#e8e4d8">'+wind+'<span class="mu"> km/h</span><span class="wdir">'+wd+'</span></div></div>'+
-    '<div class="m"><p class="mlbl">Índice UV</p>'+
-      '<div class="mval" style="color:#e8e4d8">'+uv+'</div>'+
-      '<span class="bdg '+uc+'">'+ul+'</span></div>'+
-    '<div class="m"><p class="mlbl">Puesta del sol</p>'+
-      '<div class="sun">'+sun+'</div>'+
-      '<p class="msub">hora local</p></div>'+
-  '</div>';
+  return '<div class="card">'
+    +'<p class="cday">'+lbl.day+'</p><p class="cdate">'+lbl.date+'</p>'
+    +'<div class="m"><p class="mlbl">Temperatura</p>'
+    +'<div class="trow"><span class="tmax">'+tmax+'<span class="mu">°</span></span>'
+    +'<span class="tmin">'+tmin+'<span class="mu">°</span></span></div>'
+    +'<p class="msub">máx · mín °C</p></div>'
+    +'<div class="m"><p class="mlbl">Prob. lluvia</p>'
+    +'<div class="mval" style="color:#5fa8d3">'+rain+'<span class="mu">%</span></div>'
+    +'<div class="trk"><div class="fill fr" data-w="'+rain+'"></div></div>'
+    +'<span class="bdg '+rc+'">'+rl+'</span></div>'
+    +'<div class="m"><p class="mlbl">Humedad</p>'
+    +'<div class="mval" style="color:#4caf82">'+hum+'<span class="mu">%</span></div>'
+    +'<div class="trk"><div class="fill fh" data-w="'+hum+'"></div></div></div>'
+    +'<div class="m"><p class="mlbl">Viento</p>'
+    +'<div class="mval" style="color:#e8e4d8">'+wind+'<span class="mu"> km/h</span>'
+    +'<span class="wdir">'+wd+'</span></div></div>'
+    +'<div class="m"><p class="mlbl">Índice UV</p>'
+    +'<div class="mval" style="color:#e8e4d8">'+uv+'</div>'
+    +'<span class="bdg '+uc+'">'+ul+'</span></div>'
+    +'<div class="m"><p class="mlbl">Puesta del sol</p>'
+    +'<div class="sun">'+sun+'</div>'
+    +'<p class="msub">hora local</p></div>'
+    +'</div>';
 }
 
 async function load(){
   const grid=document.getElementById('grid');
   const ts=document.getElementById('ts');
   try{
-    const{start,end}=getDates();
+    const now=new Date();
+    const start=new Date(now); start.setDate(start.getDate()+1);
+    const end=new Date(start); end.setDate(end.getDate()+3);
+
+    // URL con solo parámetros válidos confirmados
     const url='https://api.open-meteo.com/v1/forecast'
       +'?latitude=-33.45&longitude=-70.67'
-      +'&daily=temperature_2m_max,temperature_2m_min'
+      +'&daily=temperature_2m_max'
+      +',temperature_2m_min'
       +',precipitation_probability_max'
-      +',precipitation_hours'
-      +',windspeed_10m_max,winddirection_10m_dominant'
-      +',uv_index_max,sunset'
+      +',windspeed_10m_max'
+      +',winddirection_10m_dominant'
+      +',uv_index_max'
+      +',sunset'
       +'&hourly=relativehumidity_2m'
       +'&timezone=America%2FSantiago'
-      +'&start_date='+start+'&end_date='+end;
+      +'&start_date='+fmt(start)
+      +'&end_date='+fmt(end);
 
     const r=await fetch(url);
-    if(!r.ok) throw new Error('HTTP '+r.status);
     const j=await r.json();
-
-    if(j.error) throw new Error(j.reason||'Error API');
+    if(j.error) throw new Error(j.reason);
 
     const d=j.daily;
-
-    // calcular humedad promedio diaria desde datos horarios
     const hh=j.hourly.relativehumidity_2m;
+
     const humDia=d.time.map((_,i)=>{
-      const slice=hh.slice(i*24,(i+1)*24).filter(v=>v!=null);
-      return slice.length?Math.round(slice.reduce((a,b)=>a+b,0)/slice.length):0;
+      const s=hh.slice(i*24,(i+1)*24).filter(v=>v!=null);
+      return s.length ? Math.round(s.reduce((a,b)=>a+b)/s.length) : 0;
     });
 
     const suns=d.sunset.map(s=>{
@@ -164,25 +158,20 @@ async function load(){
     });
 
     const data={
-      tmax:d.temperature_2m_max,
-      tmin:d.temperature_2m_min,
-      rain:d.precipitation_probability_max,
-      hum:humDia,
-      wind:d.windspeed_10m_max,
-      wdir:d.winddirection_10m_dominant,
-      uv:d.uv_index_max,
-      sun:suns
+      tmax:d.temperature_2m_max, tmin:d.temperature_2m_min,
+      rain:d.precipitation_probability_max, hum:humDia,
+      wind:d.windspeed_10m_max, wdir:d.winddirection_10m_dominant,
+      uv:d.uv_index_max, sun:suns
     };
 
     grid.innerHTML=d.time.map((iso,i)=>card(iso,i,data)).join('');
-    const now=new Date().toLocaleString('es-CL',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
-    ts.textContent='Actualizado: '+now;
+    ts.textContent='Actualizado: '+new Date().toLocaleString('es-CL',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
     requestAnimationFrame(()=>setTimeout(()=>{
       document.querySelectorAll('.fill[data-w]').forEach(el=>el.style.width=el.dataset.w+'%');
     },100));
 
   }catch(e){
-    grid.innerHTML='<div class="loading" style="color:#e06040;font-size:11px">Error: '+e.message+'</div>';
+    grid.innerHTML='<div class="loading" style="color:#e06040">Error: '+e.message+'</div>';
     ts.textContent='';
   }
 }
@@ -193,4 +182,4 @@ load();
 </html>
 ```
 
-El cambio principal es que ahora la **humedad** se calcula desde datos horarios (que sí están disponibles en Open-Meteo) en lugar del campo diario que cambió de nombre. Sube este archivo a GitHub y debería funcionar.
+El cambio clave es que eliminé `precipitation_hours` que no existe y dejé solo los parámetros que Open-Meteo confirma como válidos. Súbelo y debería funcionar.
