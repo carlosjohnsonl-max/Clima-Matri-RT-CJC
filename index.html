@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clima Santiago · 7–10 Mayo 2026</title>
+<title>Clima Santiago</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -57,49 +57,48 @@ h1 span{color:#e8a940;font-style:italic}
 <div class="wrap">
   <div class="hdr">
     <p class="eyebrow">Meteorología · Santiago, Chile</p>
-    <h1>Pronóstico <span>7–10 Mayo 2026</span></h1>
+    <h1>Próximos <span id="rango">4 días</span></h1>
     <p class="sub">Temperatura · Lluvia · Humedad · Viento · UV · Puesta del sol</p>
   </div>
   <p class="ts" id="ts">Cargando datos en tiempo real...</p>
   <div class="grid" id="grid">
-    <div class="loading">Consultando WeatherAPI<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+    <div class="loading">Consultando Open-Meteo<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
   </div>
   <div class="ftr">
-    <span>Fuente: WeatherAPI.com · Datos en tiempo real</span>
-    <span>Santiago, Chile · UTC−4</span>
+    <span>Fuente: Open-Meteo · Datos en tiempo real</span>
+    <span>33.45°S · 70.67°O · UTC−4</span>
   </div>
 </div>
 <script>
-const API_KEY='9fad5ec9e2c74a55b3d11318262304';
 const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const FECHAS=['2026-05-07','2026-05-08','2026-05-09','2026-05-10'];
 
-function rainInfo(p){if(p<10)return['Sin lluvia','bd'];if(p<35)return['Lluvia leve','bl'];if(p<65)return['Moderada','bm'];return['Intensa','bh']}
-function uvInfo(u){if(u<=2)return['Bajo','bd'];if(u<=5)return['Moderado','bm'];return['Alto','bh']}
+function fmt(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 
-function dayLabel(iso){
+function getDates(){
+  const now=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santiago'}));
+  const start=new Date(now); start.setDate(start.getDate()+1);
+  const end=new Date(start); end.setDate(end.getDate()+3);
+  return{start:fmt(start),end:fmt(end)};
+}
+
+function label(iso){
   const[y,m,d]=iso.split('-').map(Number);
   const dt=new Date(y,m-1,d);
   return{day:DIAS[dt.getDay()],date:`${d} ${MESES[m-1]}`};
 }
 
-function card(lbl,day){
-  const tmax=Math.round(day.day.maxtemp_c),tmin=Math.round(day.day.mintemp_c),
-        rain=Math.round(day.day.daily_chance_of_rain),
-        hum=Math.round(day.day.avghumidity),
-        wind=Math.round(day.day.maxwind_kph),
-        uv=(day.day.uv||0).toFixed(1),
-        sun=day.astro.sunset.replace(' PM',' pm').replace(' AM',' am'),
+function rainInfo(p){if(p<10)return['Sin lluvia','bd'];if(p<35)return['Lluvia leve','bl'];if(p<65)return['Moderada','bm'];return['Intensa','bh']}
+function uvInfo(u){if(u<=2)return['Bajo','bd'];if(u<=5)return['Moderado','bm'];return['Alto','bh']}
+function wdir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round(deg/45)%8]}
+
+function card(iso,i,data){
+  const lbl=label(iso);
+  const tmax=Math.round(data.tmax[i]),tmin=Math.round(data.tmin[i]),
+        rain=Math.round(data.rain[i]),hum=Math.round(data.hum[i]),
+        wind=Math.round(data.wind[i]),wd=wdir(data.wdir[i]),
+        uv=(data.uv[i]||0).toFixed(1),sun=data.sun[i],
         [rl,rc]=rainInfo(rain),[ul,uc]=uvInfo(parseFloat(uv));
-
-  // convertir sunset a formato 24h
-  const sunParts=day.astro.sunset.match(/(\d+):(\d+)\s*(AM|PM)/i);
-  let sh=parseInt(sunParts[1]),sm=sunParts[2],sp=sunParts[3].toUpperCase();
-  if(sp==='PM'&&sh!==12)sh+=12;
-  if(sp==='AM'&&sh===12)sh=0;
-  const sun24=`${String(sh).padStart(2,'0')}:${sm}`;
-
   return`<div class="card">
     <p class="cday">${lbl.day}</p><p class="cdate">${lbl.date}</p>
     <div class="m"><p class="mlbl">Temperatura</p>
@@ -113,34 +112,39 @@ function card(lbl,day){
       <div class="mval" style="color:#4caf82">${hum}<span class="mu">%</span></div>
       <div class="trk"><div class="fill fh" data-w="${hum}"></div></div></div>
     <div class="m"><p class="mlbl">Viento</p>
-      <div class="mval" style="color:#e8e4d8">${wind}<span class="mu"> km/h</span></div></div>
+      <div class="mval" style="color:#e8e4d8">${wind}<span class="mu"> km/h</span><span class="wdir">${wd}</span></div></div>
     <div class="m"><p class="mlbl">Índice UV</p>
       <div class="mval" style="color:#e8e4d8">${uv}</div>
       <span class="bdg ${uc}">${ul}</span></div>
     <div class="m"><p class="mlbl">Puesta del sol</p>
-      <div class="sun">${sun24}</div>
+      <div class="sun">${sun}</div>
       <p class="msub">hora local</p></div>
   </div>`;
 }
 
 async function load(){
   try{
-    const url=`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=Santiago,Chile&days=14&aqi=no&alerts=no`;
-    const r=await fetch(url),j=await r.json();
-
-    // filtrar solo los 4 días que nos interesan
-    const diasFiltrados=j.forecast.forecastday.filter(d=>FECHAS.includes(d.date));
-
-    if(diasFiltrados.length===0){
-      throw new Error('Fechas no disponibles aún en el forecast');
-    }
-
-    document.getElementById('grid').innerHTML=diasFiltrados.map(d=>card(dayLabel(d.date),d)).join('');
+    const{start,end}=getDates();
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=-33.45&longitude=-70.67&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,relativehumidity_2m_max,windspeed_10m_max,winddirection_10m_dominant,uv_index_max,sunset&timezone=America%2FSantiago&start_date=${start}&end_date=${end}`;
+    const r=await fetch(url),j=await r.json(),d=j.daily;
+    const suns=d.sunset.map(s=>{
+      const dt=new Date(s);
+      return dt.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
+    });
+    const data={tmax:d.temperature_2m_max,tmin:d.temperature_2m_min,rain:d.precipitation_probability_max,hum:d.relativehumidity_2m_max,wind:d.windspeed_10m_max,wdir:d.winddirection_10m_dominant,uv:d.uv_index_max,sun:suns};
+    document.getElementById('grid').innerHTML=d.time.map((iso,i)=>card(iso,i,data)).join('');
     const now=new Date().toLocaleString('es-CL',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
     document.getElementById('ts').textContent='Actualizado: '+now;
     requestAnimationFrame(()=>setTimeout(()=>document.querySelectorAll('.fill[data-w]').forEach(el=>el.style.width=el.dataset.w+'%'),100));
   }catch(e){
-    document.getElementById('grid').innerHTML=`<div class="loading" style="color:#e06040">${e.message||'Error cargando datos. Recarga la página.'}</div>`;
+    document.getElementById('grid').innerHTML='<div class="loading" style="color:#e06040">Error cargando datos. Recarga la página.</div>';
     document.getElementById('ts').textContent='';
   }
 }
+load();
+</script>
+</body>
+</html>
+```
+
+Los cambios clave respecto a la versión anterior son dos: usa Open-Meteo (que sí permite llamadas desde el navegador) y calcula automáticamente los próximos 4 días desde hoy, por lo que siempre tendrá datos válidos — incluyendo cuando llegue el 7 de mayo.
